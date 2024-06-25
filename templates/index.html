@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Predicción de Uso de Bicicletas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      color: #333;
+    }
+    form {
+      background: #fff;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 20px;
+      background: #fff;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>Predicción de Uso de Bicicletas</h1>
+  <p>Utiliza este formulario para predecir el uso de bicicletas en función de varias características climáticas y estacionales.</p>
+  <form id="prediction-form" onsubmit="clasificarBicicleta(event)">
+    <label for="temp">Temperatura (normalizada, 0 a 1):</label>
+    <input type="number" step="any" name="temp" id="temp" required placeholder="Ej. 0.5">
+
+    <label for="atemp">Temperatura Aparente (normalizada, 0 a 1):</label>
+    <input type="number" step="any" name="atemp" id="atemp" required placeholder="Ej. 0.55">
+
+    <label for="hum">Humedad (normalizada, 0 a 1):</label>
+    <input type="number" step="any" name="hum" id="hum" required placeholder="Ej. 0.6">
+
+    <label for="windspeed">Velocidad del Viento (normalizada, 0 a 1):</label>
+    <input type="number" step="any" name="windspeed" id="windspeed" required placeholder="Ej. 0.3">
+
+    <label for="season">Temporada (1: Invierno, 2: Primavera, 3: Verano, 4: Otoño):</label>
+    <input type="number" name="season" id="season" required placeholder="Ej. 3">
+
+    <button type="submit">Predecir</button>
+  </form>
+  <div id="result"></div>
+
+  <script>
+    function clasificarBicicleta(event) {
+        event.preventDefault();
+        const form = document.getElementById('prediction-form');
+        const formData = new FormData(form);
+
+        const features = {
+            temp: formData.get('temp'),
+            atemp: formData.get('atemp'),
+            hum: formData.get('hum'),
+            windspeed: formData.get('windspeed'),
+            season: formData.get('season')
+        };
+
+        fetch('/predict', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(features)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('result').innerText = 'Error: ' + data.error;
+            } else {
+                document.getElementById('result').innerText = 'Predicción: Se espera que ' + data.prediccion + ' bicicletas sean alquiladas.';
+            }
+        })
+        .catch(error => {
+            document.getElementById('result').innerText = 'Error en la solicitud.';
+            console.error('Error:', error);
+        });
+    }
+  </script>
+</body>
+</html>
